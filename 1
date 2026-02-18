@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro de Personas</title>
+  <style>
+    :root{
+      --primary:#0d6efd; --secondary:#6c757d; --warning:#f0ad4e;
+      --text:#222; --muted:#666; --border:#ddd; --ok-bg:#e7f6ec; --ok-border:#c3e6cb; --ok-text:#155724;
+      --err-bg:#fdecea; --err-border:#f5c2c7; --err-text:#8a1c1c;
+    }
+    body { font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; margin:2rem; color:var(--text); }
+    .card { border:1px solid var(--border); border-radius:8px; padding:1.25rem; max-width:980px; }
+    .grid { display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); }
+    label { font-weight:600; margin-bottom:0.25rem; display:inline-block; }
+    input, select, textarea { width:100%; padding:.55rem .7rem; border:1px solid #ccc; border-radius:6px; font-size:.95rem; }
+    textarea { min-height:120px; }
+    .row { margin-bottom:1rem; }
+    .actions { display:flex; gap:.6rem; flex-wrap:wrap; }
+    button { background:var(--primary); color:#fff; border:none; border-radius:6px; padding:.6rem 1rem; cursor:pointer; font-size:.95rem; }
+    button.secondary { background:var(--secondary); }
+    button.clean { background:var(--warning); color:#222; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    .msg { margin-top:1rem; padding:.75rem 1rem; border-radius:6px; display:none; }
+    .msg.ok { display:block; background:var(--ok-bg); color:var(--ok-text); border:1px solid var(--ok-border); }
+    .msg.err { display:block; background:var(--err-bg); color:var(--err-text); border:1px solid var(--err-border); }
+    .muted { color:var(--muted); font-size:.9rem; }
+    .result { margin-top:1rem; border:1px solid #eee; border-radius:6px; padding:.75rem 1rem; }
+    table { border-collapse:collapse; width:100%; }
+    th, td { text-align:left; padding:.5rem; border-bottom:1px solid #eee; vertical-align:top; }
+    .counter { font-size:.85rem; color:var(--muted); text-align:right; margin-top:.25rem; }
+    .required::after { content:" *"; color:#d00; }
+  </style>
+</head>
+<body>
+  <h1>Registro de Personas</h1>
+  <p class="muted">Los datos se almacenan en una base de datos local (SQLite) en tu equipo.</p>
+
+  <div class="card">
+    <form id="formRegistro" autocomplete="off">
+      <div class="grid">
+        <div class="row">
+          <label for="identificador" class="required">Identificador (CURP o correo)</label>
+          <input id="identificador" name="identificador" type="text" required placeholder="Ej. ABCD001122HDFRRS09 o correo@dominio.com" />
+        </div>
+        <div class="row">
+          <label for="nombre">Nombre completo</label>
+          <input id="nombre" name="nombre" type="text" placeholder="Nombre(s) Apellido(s)" />
+        </div>
+        <div class="row">
+          <label for="edad" class="required">Edad</label>
+          <input id="edad" name="edad" type="number" min="0" max="120" required />
+        </div>
+        <div class="row">
+          <label for="genero">Género</label>
+          <select id="genero" name="genero">
+            <option value="">— Selecciona —</option>
+            <option>Femenino</option>
+            <option>Masculino</option>
+            <option>No binario</option>
+            <option>Otro</option>
+            <option>Prefiero no decir</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="sexo">Sexo</label>
+          <select id="sexo" name="sexo">
+            <option value="">— Selecciona —</option>
+            <option>Femenino</option>
+            <option>Masculino</option>
+            <option>Intersexual</option>
+            <option>Prefiero no decir</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="entidad_federativa">Entidad Federativa</label>
+          <select id="entidad_federativa" name="entidad_federativa">
+            <option value="">— Selecciona —</option>
+            <option>Aguascalientes</option>
+            <option>Baja California</option>
+            <option>Baja California Sur</option>
+            <option>Campeche</option>
+            <option>Coahuila</option>
+            <option>Colima</option>
+            <option>Chiapas</option>
+            <option>Chihuahua</option>
+            <option>Ciudad de México</option>
+            <option>Durango</option>
+            <option>Guanajuato</option>
+            <option>Guerrero</option>
+            <option>Hidalgo</option>
+            <option>Jalisco</option>
+            <option>México</option>
+            <option>Michoacán</option>
+            <option>Morelos</option>
+            <option>Nayarit</option>
+            <option>Nuevo León</option>
+            <option>Oaxaca</option>
+            <option>Puebla</option>
+            <option>Querétaro</option>
+            <option>Quintana Roo</option>
+            <option>San Luis Potosí</option>
+            <option>Sinaloa</option>
+            <option>Sonora</option>
+            <option>Tabasco</option>
+            <option>Tamaulipas</option>
+            <option>Tlaxcala</option>
+            <option>Veracruz</option>
+            <option>Yucatán</option>
+            <option>Zacatecas</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="texto_libre">Texto libre (máx. 250 palabras)</label>
+        <textarea id="texto_libre" name="texto_libre" placeholder="Escribe aquí..."></textarea>
+        <div class="counter"><span id="contadorPalabras">0</span>/250 palabras</div>
+      </div>
+
+      <div class="actions">
+        <button id="btnGuardar" type="button">Guardar registro</button>
+        <button id="btnConsultar" type="button" class="secondary">Consultar</button>
+        <button id="btnLimpiar" type="button" class="clean">Limpiar registro</button>
+      </div>
+
+      <div id="msg" class="msg"></div>
+
+      <div id="resultado" class="result" style="display:none;">
+        <h3>Último registro encontrado</h3>
+        <table>
+          <tbody id="resultadoBody"></tbody>
+        </table>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+
+    const inputTexto = $("#texto_libre");
+    const contador = $("#contadorPalabras");
+    const msg = $("#msg");
+    const resultado = $("#resultado");
+    const resultadoBody = $("#resultadoBody");
+
+    function contarPalabras(texto) {
+      const words = (texto || "").trim().split(/\s+/).filter(Boolean);
+      return words.length === 1 && words[0] === "" ? 0 : words.length;
+    }
+
+    // Contador de palabras
+    inputTexto.addEventListener("input", () => {
+      const wc = contarPalabras(inputTexto.value);
+      contador.textContent = wc;
+      inputTexto.style.borderColor = wc > 250 ? "#d00" : "#ccc";
+    });
+
+    function setMsg(ok, text) {
+      msg.className = "msg " + (ok ? "ok" : "err");
+      msg.textContent = text;
+      msg.style.display = "block";
+    }
+
+    function getPayload() {
+      return {
+        identificador: $("#identificador").value.trim(),
+        nombre: $("#nombre").value.trim(),
+        edad: $("#edad").value.trim(),
+        genero: $("#genero").value,
+        sexo: $("#sexo").value,
+        entidad_federativa: $("#entidad_federativa").value,
+        texto_libre: $("#texto_libre").value.trim()
+      };
+    }
+
+    async function guardar() {
+      setMsg(true, "Procesando...");
+      const payload = getPayload();
+
+      const wc = contarPalabras(payload.texto_libre);
+      if (wc > 250) return setMsg(false, "El texto libre excede las 250 palabras.");
+      if (!payload.identificador) return setMsg(false, "El identificador (CURP o correo) es obligatorio.");
+      if (!payload.edad || Number(payload.edad) < 0 || Number(payload.edad) > 120) {
+        return setMsg(false, "La edad debe estar entre 0 y 120.");
+      }
+
+      $("#btnGuardar").disabled = true;
+      try {
+        const res = await fetch("/guardar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.msg || "Error al guardar.");
+        setMsg(true, data.msg || "Registro guardado.");
+      } catch (e) {
+        setMsg(false, e.message);
+      } finally {
+        $("#btnGuardar").disabled = false;
+      }
+    }
+
+    function pintarResultado(data) {
+      resultadoBody.innerHTML = "";
+      const map = {
+        fecha_hora: "Fecha y hora",
+        identificador: "Identificador",
+        nombre: "Nombre",
+        edad: "Edad",
+        genero: "Género",
+        sexo: "Sexo",
+        entidad_federativa: "Entidad Federativa",
+        texto_libre: "Texto libre"
+      };
+      Object.keys(map).forEach(k => {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        const td = document.createElement("td");
+        th.textContent = map[k];
+        td.textContent = data[k] ?? "";
+        tr.appendChild(th);
+        tr.appendChild(td);
+        resultadoBody.appendChild(tr);
+      });
+      resultado.style.display = "block";
+    }
+
+    async function consultar() {
+      setMsg(true, "Consultando...");
+      resultado.style.display = "none";
+
+      const identificador = $("#identificador").value.trim();
+      if (!identificador) return setMsg(false, "Escribe un identificador para consultar (CURP o correo).");
+
+      $("#btnConsultar").disabled = true;
+      try {
+        const res = await fetch("/consultar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identificador })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.msg || "No se encontró información.");
+        setMsg(true, "Consulta exitosa: mostrando el registro más reciente.");
+        pintarResultado(data.data);
+
+        // También llenamos el formulario con lo consultado (si quieres)
+        $("#nombre").value = data.data.nombre ?? "";
+        $("#edad").value = data.data.edad ?? "";
+        $("#genero").value = data.data.genero ?? "";
+        $("#sexo").value = data.data.sexo ?? "";
+        $("#entidad_federativa").value = data.data.entidad_federativa ?? "";
+        $("#texto_libre").value = data.data.texto_libre ?? "";
+        contador.textContent = contarPalabras($("#texto_libre").value);
+      } catch (e) {
+        setMsg(false, e.message);
+      } finally {
+        $("#btnConsultar").disabled = false;
+      }
+    }
+
+    function limpiar() {
+      // Limpia SOLO el formulario y el resultado en pantalla.
+      // No borra nada de la base de datos.
+      $("#nombre").value = "";
+      $("#edad").value = "";
+      $("#genero").value = "";
+      $("#sexo").value = "";
+      $("#entidad_federativa").value = "";
+      $("#texto_libre").value = "";
+      contador.textContent = "0";
+      resultado.style.display = "none";
+      setMsg(true, "Formulario limpiado. (El registro en la base de datos NO se modificó)");
+    }
+
+    // Listeners
+    $("#btnGuardar").addEventListener("click", guardar);
+    $("#btnConsultar").addEventListener("click", consultar);
+    $("#btnLimpiar").addEventListener("click", limpiar);
+
+    // Evitar submit nativo del formulario
+    document.querySelector("#formRegistro").addEventListener("submit", (e) => e.preventDefault());
+  </script>
+</body>
+</html>
