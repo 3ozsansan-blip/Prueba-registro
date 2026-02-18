@@ -137,12 +137,8 @@
   </div>
 
   <script>
-    // 🔗 ====> CAMBIA ESTA URL POR TU BACKEND PÚBLICO O LOCAL <====
-    // Ejemplos:
-    // const API_BASE = "https://abcd-1234.ngrok.io";
-    // const API_BASE = "https://proyecto-registro.onrender.com";
-    // const API_BASE = "http://192.168.0.15:5000";
-    const API_BASE = "https://TU_BACKEND_AQUI";
+    // 🔗 ====> URL ABSOLUTA DEL BACKEND (LOCAL) <====
+    const API_BASE = "http://127.0.0.1:5000";
 
     const $ = (sel) => document.querySelector(sel);
 
@@ -157,7 +153,7 @@
       return words.length === 1 && words[0] === "" ? 0 : words.length;
     }
 
-    // Utilidad para evitar el error "Unexpected token '<'..."
+    // Utilidad: fetch POST robusto con validación de JSON
     async function postJSON(path, body) {
       const url = `${API_BASE}${path}`;
       const res = await fetch(url, {
@@ -166,7 +162,6 @@
         body: JSON.stringify(body),
       });
 
-      // Verificar que la respuesta sea JSON
       const ct = res.headers.get("content-type") || "";
       if (!ct.includes("application/json")) {
         const text = await res.text();
@@ -180,6 +175,7 @@
       return data;
     }
 
+    // Contador de palabras
     inputTexto.addEventListener("input", () => {
       const wc = contarPalabras(inputTexto.value);
       contador.textContent = wc;
@@ -280,6 +276,7 @@
     }
 
     function limpiar() {
+      // Limpia SOLO el formulario y la vista, no modifica la base de datos
       $("#nombre").value = "";
       $("#edad").value = "";
       $("#genero").value = "";
