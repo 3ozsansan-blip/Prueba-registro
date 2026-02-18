@@ -35,7 +35,7 @@
 </head>
 <body>
   <h1>Registro de Personas</h1>
-  <p class="muted">Los datos se almacenan en una base de datos local (SQLite) en tu equipo.</p>
+  <p class="muted">Los datos se almacenan en una base de datos (backend) accesible desde esta interfaz.</p>
 
   <div class="card">
     <form id="formRegistro" autocomplete="off">
@@ -137,6 +137,13 @@
   </div>
 
   <script>
+    // 🔗 ====> CAMBIA ESTA URL POR TU BACKEND PÚBLICO O LOCAL <====
+    // Ejemplos:
+    // const API_BASE = "https://abcd-1234.ngrok.io";
+    // const API_BASE = "https://proyecto-registro.onrender.com";
+    // const API_BASE = "http://192.168.0.15:5000";
+    const API_BASE = "https://TU_BACKEND_AQUI";
+
     const $ = (sel) => document.querySelector(sel);
 
     const inputTexto = $("#texto_libre");
@@ -150,7 +157,29 @@
       return words.length === 1 && words[0] === "" ? 0 : words.length;
     }
 
-    // Contador de palabras
+    // Utilidad para evitar el error "Unexpected token '<'..."
+    async function postJSON(path, body) {
+      const url = `${API_BASE}${path}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      // Verificar que la respuesta sea JSON
+      const ct = res.headers.get("content-type") || "";
+      if (!ct.includes("application/json")) {
+        const text = await res.text();
+        throw new Error(`Respuesta no-JSON (${res.status}). Contenido inicial: ${text.slice(0, 120)}...`);
+      }
+
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.msg || `Error HTTP ${res.status}`);
+      }
+      return data;
+    }
+
     inputTexto.addEventListener("input", () => {
       const wc = contarPalabras(inputTexto.value);
       contador.textContent = wc;
@@ -188,13 +217,7 @@
 
       $("#btnGuardar").disabled = true;
       try {
-        const res = await fetch("/guardar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.msg || "Error al guardar.");
+        const data = await postJSON("/guardar", payload);
         setMsg(true, data.msg || "Registro guardado.");
       } catch (e) {
         setMsg(false, e.message);
@@ -237,17 +260,11 @@
 
       $("#btnConsultar").disabled = true;
       try {
-        const res = await fetch("/consultar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identificador })
-        });
-        const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.msg || "No se encontró información.");
+        const data = await postJSON("/consultar", { identificador });
         setMsg(true, "Consulta exitosa: mostrando el registro más reciente.");
         pintarResultado(data.data);
 
-        // También llenamos el formulario con lo consultado (si quieres)
+        // (Opcional) Completar formulario con lo consultado:
         $("#nombre").value = data.data.nombre ?? "";
         $("#edad").value = data.data.edad ?? "";
         $("#genero").value = data.data.genero ?? "";
@@ -263,8 +280,6 @@
     }
 
     function limpiar() {
-      // Limpia SOLO el formulario y el resultado en pantalla.
-      // No borra nada de la base de datos.
       $("#nombre").value = "";
       $("#edad").value = "";
       $("#genero").value = "";
